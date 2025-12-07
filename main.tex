@@ -1,0 +1,309 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+% Section formatting
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Adjust spacing
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsubsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Better paragraph spacing
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+% Page geometry
+\geometry{margin=1in}
+
+% Code listing settings
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Database Security - SQL Injection}
+\lhead{DFD Synopsis}
+\rfoot{Page \thepage}
+
+% Title information
+\title{\textbf{SQL Injection Defense Mechanisms}\\
+\large A Comparative Study Across Programming Languages and Frameworks}
+\author{Mikkel Bak Markers}
+\date{\today}
+
+% Document
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+    In the darkest corners of the web, frightful worms and horrifying hacks
+    are concocted. Still, between the daemons and the dogs,
+    a simple threat persists: SQL injection. This investigation will uncover
+    how these abominable beasts penetrate the otherwise impregnable
+    defenses of modern applications. By comparing the defensive mechanisms
+    across C\#, Python, and Node.js ecosystems, we aim to shine light on
+    how best to thwart these attacks, while still maintaining developer
+    productivity and application performance. Through surreptitious toils,
+    we shall reveal which combination of language and framework offers
+    the most stalwart protection against SQL injection, and provide
+    ample and empirical evidence to the wary developer.
+    [REMEMBER WHAT MUST BE DONE in about 250 words]
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+% The ancient evil persists - why does SQL injection still plague our applications?
+
+Despite decades of awareness and countermeasures, SQL injection remains 
+among the most critical vulnerabilities in web applications, consistently 
+ranking in OWASP's Top 10 security risks \cite{OWASP_Top10}. These attacks 
+exploit insufficient input validation and sanitization, allowing malicious actors to 
+manipulate database queries and compromise data integrity, confidentiality, 
+and availability \cite{Halfond2006,OWASP_SQLi}.
+
+While the fundamental defensive principle of ``never trust user input'' is well 
+established, the practical implementation varies dramatically across 
+programming ecosystems. This investigation conducts a comparative analysis 
+of SQL injection defense mechanisms in three widely-adopted languages: 
+C\# (.NET), Python, and Node.js.
+We examine not only how robust the security is 
+in each approach, but also the developer experience and performance implications 
+that influence real-world adoption of secure practices.
+
+\subsection{Motivation}
+% Why this investigation matters - the curse is real
+
+The financial carnage wrought by SQL injection attacks remains staggering. 
+IBM's 2023 Cost of a Data Breach Report reveals the average data breach 
+costs organizations \$4.45 million USD\cite{IBM_DataBreach2023}, with 
+web application attacks, where SQL injection features prominently, accounting 
+for a substantial portion of these incidents\cite{Verizon_DBIR2023}. 
+Healthcare, finance, and e-commerce sectors bear disproportionate impact, 
+with individual breaches costing tens of millions in remediation, regulatory 
+fines, litigation, and reputational damage\cite{Alghawazi2021}.
+
+Despite decades of documented countermeasures\cite{Kindy2011}, developers 
+continue to unknowingly introduce SQL injection vulnerabilities through 
+framework misuse, inadequate training, or prioritizing speed over security. 
+The choice between security and developer productivity need not be binary, 
+yet the persistence of these attacks suggests a fundamental disconnect 
+between secure coding principles and practical implementation.
+
+This comparative study addresses a critical gap: while individual language 
+communities document their own defensive patterns, cross-language analyses 
+revealing which ecosystems make secure code the \textit{default} rather than 
+the \textit{exception} remain scarce. For organizations selecting technology 
+stacks, understanding how language design and framework architecture influence 
+security outcomes is not merely academic; it directly impacts their risk exposure.
+
+Personally, the tension between ease-of-use and security fascinates me. The 
+intern hastily building raggedy solutions, versus the seasoned malpractitioner
+of the electronic arts, poking holes in the former's shoddy defenses.
+This investigation reveals which languages and frameworks best empower
+developers to build secure applications without sacrificing productivity.
+
+\subsection{Background and Context}
+% SQL injection fundamentals
+% The cost of vulnerabilities in modern applications
+% The role of language design in preventing security flaws
+% Brief overview of the languages to be examined
+
+\section{Problem Statement}
+% The precise nature of our inquiry
+
+\textbf{Research Question:} 
+How do defensive mechanisms against 
+SQL injection differ across C\#, Python, and Node.js ecosystems, 
+and which language/framework combination provides the most robust 
+protection while minimizing developer friction and performance overhead?
+
+\subsection{Sub-questions}
+% Supporting inquiries that guide our investigation
+\begin{itemize}
+    \item What are the built-in protections each language provides?
+    \item How easy is it for developers to accidentally introduce vulnerabilities?
+    \item What is the performance cost of proper defensive measures?
+    \item Which approach is most resistant to misuse?
+\end{itemize}
+
+\section{Methodology}
+% Our investigative approach
+
+\subsection{Research Approach}
+% Literature review: OWASP guidelines, language documentation
+% Academic papers on SQL injection prevention
+% Framework documentation and best practices
+
+\subsection{Implementation Strategy}
+% Build equivalent REST API in three languages
+% Implement authentication and data query endpoints
+% Create vulnerable baseline versions
+% Implement secured versions using language-specific approaches
+% Document code patterns and developer experience
+
+\subsection{Evaluation Criteria}
+% What we will measure and compare
+
+\subsubsection{Security Robustness}
+% Resistance to common SQL injection attacks
+% Ease of introducing vulnerabilities through misuse
+
+\subsubsection{Developer Experience}
+% Code complexity and verbosity
+% Learning curve
+% Framework support and documentation
+
+\subsubsection{Performance Overhead}
+% Response time comparison
+% Resource utilization
+% Scalability implications
+
+\subsection{Test Environment}
+% Technical specifications
+% Database: SQL Server
+% Languages: C\# (.NET Core), Python (Flask + SQLAlchemy), Node.js (Express + Sequelize)
+% Testing methodology for attacks and performance
+
+\section{Analysis \& Results}
+% The meat of our investigation - theory meets practice
+
+\subsection{Theoretical Foundation}
+% SQL injection mechanisms briefly explained
+% Defense categories: parameterized queries, ORMs, input validation
+% Why language design matters
+
+\subsection{C\# and Entity Framework}
+% Implementation details
+
+\subsubsection{Vulnerable Implementation}
+% Code example showing string concatenation vulnerability
+% Why it's easy to make this mistake
+
+\subsubsection{Secured Implementation}
+% Parameterized queries with ADO.NET
+% Entity Framework LINQ approach
+% Analysis of type safety and compile-time protections
+
+\subsubsection{Evaluation}
+% Security robustness findings
+% Developer experience observations
+% Performance measurements
+
+\subsection{Python and SQLAlchemy}
+% Implementation details
+
+\subsubsection{Vulnerable Implementation}
+% Raw SQL with string formatting vulnerability
+% Common pitfalls in Python web development
+
+\subsubsection{Secured Implementation}
+% Parameterized queries with psycopg2/pyodbc
+% SQLAlchemy ORM approach
+% Analysis of Python's dynamic typing implications
+
+\subsubsection{Evaluation}
+% Security robustness findings
+% Developer experience observations
+% Performance measurements
+
+\subsection{Node.js and Sequelize}
+% Implementation details
+
+\subsubsection{Vulnerable Implementation}
+% Template literal injection vulnerability
+% The dangers of JavaScript's flexible string handling
+
+\subsubsection{Secured Implementation}
+% Parameterized queries with native drivers
+% Sequelize ORM approach
+% Analysis of JavaScript's type system challenges
+
+\subsubsection{Evaluation}
+% Security robustness findings
+% Developer experience observations
+% Performance measurements
+
+\subsection{Cross-Language Comparison}
+% Bringing it all together
+
+\subsubsection{Security Comparison}
+% Which approach is hardest to misuse?
+% Compile-time vs runtime protections
+% Framework abstractions and their trade-offs
+
+\subsubsection{Developer Experience Comparison}
+% Code verbosity and clarity
+% Ease of learning and applying secure patterns
+% Documentation and ecosystem support
+
+\subsubsection{Performance Comparison}
+% Response time analysis
+% Overhead of defensive measures
+% Scalability considerations
+
+\section{Conclusion}
+% What knowledge have we gained from this descent?
+
+\subsection{Summary of Findings}
+% Key discoveries from the investigation
+% Which language/framework excels in which dimension
+% Trade-offs between security, usability, and performance
+
+\subsection{Answering the Research Question}
+% Direct response to the problem statement
+% Confirmation or rejection of hypotheses
+% Nuanced conclusions about context-dependent choices
+
+\subsection{Best Practices and Recommendations}
+% Universal principles that emerged
+% Language-specific recommendations
+% Organizational considerations for technology choice
+
+\subsection{Limitations and Future Work}
+% What we couldn't cover
+% Additional languages worth investigating
+% Emerging defensive technologies
+% The ongoing evolution of the threat landscape
+
+\subsection{Reflection}
+% Personal learnings from the investigation
+% Implications for future development work
+
+\newpage
+
+\bibliographystyle{plain}
+\bibliography{out/references}
+
+\end{document}
+
