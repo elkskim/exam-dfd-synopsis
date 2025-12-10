@@ -6,9 +6,17 @@
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{amsmath}
-\usepackage{hyperref}
-\usepackage{listings}
 \usepackage{xcolor}
+\usepackage[
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    pdfborder={0 0 0}
+]{hyperref}
+\usepackage{listings}
 \usepackage{fancyhdr}
 
 % Section formatting
@@ -31,6 +39,7 @@
 
 % Page geometry
 \geometry{margin=1in}
+\setlength{\headheight}{14pt}
 
 % Code listing settings
 \lstset{
@@ -65,13 +74,17 @@
 
 \begin{abstract}
     In the darkest corners of the web, frightful worms and horrifying hacks
-    are concocted. Still, between the daemons and the dogs,
-    a simple threat persists: SQL injection. This investigation will uncover
+    are concocted. 
+    Still, between the daemons and the dogs,
+    a simple threat persists: SQL injection. 
+    This investigation will uncover
     how these abominable beasts penetrate the otherwise impregnable
-    defenses of modern applications. By comparing the defensive mechanisms
+    defenses of modern applications. 
+    By comparing the defensive mechanisms
     across C\#, Python, and Node.js ecosystems, we aim to shine light on
     how best to thwart these attacks, while still maintaining developer
-    productivity and application performance. Through surreptitious toils,
+    productivity and application performance. 
+    Through surreptitious toils,
     we shall reveal which combination of language and framework offers
     the most stalwart protection against SQL injection, and provide
     ample and empirical evidence to the wary developer.
@@ -103,17 +116,18 @@ that influence real-world adoption of secure practices.
 
 \subsection{Motivation}
 % Why this investigation matters - the curse is real
-
-The financial carnage wrought by SQL injection attacks remains staggering. 
+The urgency of this investigation is underscored by the continued prevalence 
+and cost of SQL injection attacks. 
+The financial carnage remains staggering: 
 IBM's 2023 Cost of a Data Breach Report reveals the average data breach 
-costs organizations \$4.45 million USD\cite{IBM_DataBreach2023}, with 
-web application attacks, where SQL injection features prominently, accounting 
-for a substantial portion of these incidents\cite{Verizon_DBIR2023}. 
-Healthcare, finance, and e-commerce sectors bear disproportionate impact, 
-with individual breaches costing tens of millions in remediation, regulatory 
-fines, litigation, and reputational damage\cite{Alghawazi2021}.
+costs organizations \$4.45 million USD, with healthcare sector breaches 
+averaging \$10.93 million, the highest of all industries\cite{ResilientX_IBM2023}. 
+Web application attacks remain a prime threat vector across critical sectors 
+including healthcare, finance, and public administration\cite{ENISA_ThreatLandscape2023}, 
+with these attacks accounting for a substantial portion of breach 
+incidents\cite{Verizon_DBIR2023}.
 
-Despite decades of documented countermeasures\cite{Kindy2011}, developers 
+Still, developers 
 continue to unknowingly introduce SQL injection vulnerabilities through 
 framework misuse, inadequate training, or prioritizing speed over security. 
 The choice between security and developer productivity need not be binary, 
@@ -123,24 +137,28 @@ between secure coding principles and practical implementation.
 This comparative study addresses a critical gap: while individual language 
 communities document their own defensive patterns, cross-language analyses 
 revealing which ecosystems make secure code the \textit{default} rather than 
-the \textit{exception} remain scarce. For organizations selecting technology 
+the \textit{exception} remain scarce.
+For organizations selecting technology 
 stacks, understanding how language design and framework architecture influence 
 security outcomes is not merely academic; it directly impacts their risk exposure.
 
-Personally, the tension between ease-of-use and security fascinates me. The 
-intern hastily building raggedy solutions, versus the seasoned malpractitioner
-of the electronic arts, poking holes in the former's shoddy defenses.
-This investigation reveals which languages and frameworks best empower
-developers to build secure applications without sacrificing productivity.
-
-\subsection{Background and Context}
-% SQL injection fundamentals
-% The cost of vulnerabilities in modern applications
-% The role of language design in preventing security flaws
-% Brief overview of the languages to be examined
+Personally, the perpetual arms race between security mechanisms and 
+exploitation techniques fascinates me. 
+Developers strive to build secure 
+applications under tight deadlines, while attackers continuously probe for 
+weaknesses to exploit.
+This investigation reveals which languages and frameworks 
+best empower developers to safeguard their applications against SQL injection 
+without sacrificing productivity or imposing excessive complexity.
 
 \section{Problem Statement}
 % The precise nature of our inquiry
+While existing literature provides insight into the mechanics of SQL injection 
+and general prevention strategies, there is a lack of comparative analysis 
+across different programming languages and frameworks. This investigation 
+addresses that gap by examining which language-framework combination provides 
+the most robust and simultaneously developer-friendly defense against 
+SQL injection attacks.
 
 \textbf{Research Question:} 
 How do defensive mechanisms against 
@@ -160,40 +178,73 @@ protection while minimizing developer friction and performance overhead?
 \section{Methodology}
 % Our investigative approach
 
+This investigation employs a comparative implementation-based methodology,
+building equivalent web applications in three different languages
+to evaluate how each handles simulated SQL injection attacks.
+
+
 \subsection{Research Approach}
-% Literature review: OWASP guidelines, language documentation
-% Academic papers on SQL injection prevention
-% Framework documentation and best practices
+
+The theoretical foundation draws from established security literature,
+including OWASP's SQL Injection Prevention guidelines\cite{OWASP_SQLi} and
+academic research on attack classification\cite{Halfond2006}. We supplement
+this with official framework documentation for Entity Framework (.NET),
+SQLAlchemy (Python), and Sequelize (Node.js) to understand idiomatic secure
+patterns in each ecosystem. The implementation follows industry-standard
+secure development practices while intentionally creating vulnerabilities
+to demonstrate common pitfalls developers encounter.
 
 \subsection{Implementation Strategy}
-% Build equivalent REST API in three languages
-% Implement authentication and data query endpoints
-% Create vulnerable baseline versions
-% Implement secured versions using language-specific approaches
-% Document code patterns and developer experience
+
+We implement three equivalent REST APIs, each providing authentication and
+data query endpoints that interact with a SQL Server database. 
+For each ecosystem, we develop two versions: a vulnerable baseline using
+unsafe string concatenation or interpolation, and a secured implementation
+employing parameterized queries and ORM frameworks. 
+The C\# implementation uses ASP.NET Core with Entity Framework, Python uses Flask with SQLAlchemy,
+and Node.js uses Express with Sequelize. 
+This approach allows direct comparison of both the security 
+vulnerabilities introduced through common
+mistakes and the protective mechanisms each framework provides.
 
 \subsection{Evaluation Criteria}
-% What we will measure and compare
 
 \subsubsection{Security Robustness}
-% Resistance to common SQL injection attacks
-% Ease of introducing vulnerabilities through misuse
+
+Security evaluation tests each implementation against common SQL injection
+attack vectors including union-based attacks, boolean-based blind injection,
+and time-based blind injection.
+We assess both the vulnerability of baseline
+implementations and the effectiveness of defensive measures in secured versions.
+Additionally, we evaluate how easily developers can accidentally introduce
+vulnerabilities through framework misuse or misunderstanding.
 
 \subsubsection{Developer Experience}
-% Code complexity and verbosity
-% Learning curve
-% Framework support and documentation
+
+Developer experience assessment examines code verbosity, pattern clarity,
+and cognitive load required to implement secure database interactions. 
+We analyze the learning curve for each framework's security features, the quality
+and accessibility of documentation, and how naturally secure patterns emerge
+from idiomatic code. Special attention is given to compile-time versus
+runtime error detection and how type systems influence security.
 
 \subsubsection{Performance Overhead}
-% Response time comparison
-% Resource utilization
-% Scalability implications
+
+Performance evaluation measures response time for equivalent operations across
+all three implementations, comparing vulnerable baseline versions against
+secured implementations to quantify the overhead of proper defensive measures.
+We conduct load testing to assess scalability characteristics and identify
+performance bottlenecks specific to each language's database interaction model.
 
 \subsection{Test Environment}
-% Technical specifications
-% Database: SQL Server
-% Languages: C\# (.NET Core), Python (Flask + SQLAlchemy), Node.js (Express + Sequelize)
-% Testing methodology for attacks and performance
+
+All implementations connect to Microsoft SQL Server 2022 running locally.
+The C\# implementation uses .NET 8 with Entity Framework Core 8, Python
+uses version 3.12 with Flask 3.0 and SQLAlchemy 2.0, and Node.js uses
+version 20 LTS with Express 4.18 and Sequelize 6.35. Security testing
+employs both manual payload injection and automated testing with sqlmap.
+Performance measurements use Apache Bench for consistent load generation
+across all implementations.
 
 \section{Analysis \& Results}
 % The meat of our investigation - theory meets practice

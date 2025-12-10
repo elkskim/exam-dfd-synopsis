@@ -1,29 +1,17 @@
 \begin{thebibliography}{1}
 
-\bibitem{Alghawazi2021}
-Mohammed Alghawazi, Daniyal Alghazzawi, and Sultan Alarifi.
-\newblock Detection of sql injection attack using machine learning techniques:
-  A systematic literature review.
-\newblock {\em Journal of Cybersecurity and Privacy}, 1(3):604--636, 2021.
+\bibitem{ENISA_ThreatLandscape2023}
+{European Union Agency for Cybersecurity}.
+\newblock Enisa threat landscape 2023, 2023.
+\newblock Annual threat landscape report covering web application attacks
+  across critical sectors.
 
 \bibitem{Halfond2006}
 William G.~J. Halfond, Jeremy Viegas, and Alessandro Orso.
 \newblock A classification of sql-injection attacks and countermeasures.
-\newblock {\em Proceedings of the IEEE International Symposium on Secure
+\newblock In {\em Proceedings of the IEEE International Symposium on Secure
   Software Engineering}, 2006.
-
-\bibitem{IBM_DataBreach2023}
-{IBM Security}.
-\newblock Cost of a data breach report 2023.
-\newblock Technical report, IBM Corporation, 2023.
-\newblock Average cost of data breach: \$4.45 million USD.
-
-\bibitem{Kindy2011}
-D.~A. Kindy and A.~S.~K. Pathan.
-\newblock A survey on sql injection: Vulnerabilities, attacks, and prevention
-  techniques.
-\newblock In {\em 2011 IEEE 15th International Symposium on Consumer
-  Electronics}, pages 468--473, 2011.
+\newblock Author's institutional repository, USC Viterbi School.
 
 \bibitem{OWASP_Top10}
 {OWASP Foundation}.
@@ -32,6 +20,11 @@ D.~A. Kindy and A.~S.~K. Pathan.
 \bibitem{OWASP_SQLi}
 {OWASP Foundation}.
 \newblock Sql injection prevention cheat sheet, 2024.
+
+\bibitem{ResilientX_IBM2023}
+{ResilientX}.
+\newblock Ibm cost of a data breach report 2023: What we learn from it, 2023.
+\newblock Analysis of IBM/Ponemon Cost of Data Breach Report findings.
 
 \bibitem{Verizon_DBIR2023}
 {Verizon}.
