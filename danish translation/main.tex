@@ -1,0 +1,560 @@
+﻿\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[danish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    pdfborder={0 0 0}
+]{hyperref}
+\usepackage{listings}
+\usepackage{fancyhdr}
+
+% Section formatting
+\usepackage{titlesec}
+\titleformat{\section}
+{\normalfont\Large\bfseries}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}
+{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Adjust spacing
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsubsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Better paragraph spacing
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+% Page geometry
+\geometry{margin=1in}
+\setlength{\headheight}{14pt}
+
+% Code listing settings
+\lstdefinelanguage{JavaScript}{
+    keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, const, let, async, await},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={class, export, boolean, throw, implements, import, this},
+    ndkeywordstyle=\color{blue}\bfseries,
+    identifierstyle=\color{black},
+    sensitive=false,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    captionpos=b,
+    tabsize=2,
+    showstringspaces=false
+}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Databasesikkerhed - SQL Injection}
+\lhead{DFD Synopsis}
+\rfoot{Side \thepage}
+
+% Title information
+\title{\textbf{SQL Injection Forsvarsmekanismer}\\
+\large En Komparativ Undersøgelse på Tværs af Programmeringssprog og Frameworks}
+\author{Mikkel Bak Markers}
+\date{\today}
+
+% Document
+\begin{document}
+
+    \maketitle
+    \thispagestyle{empty}
+
+    \begin{abstract}
+        I de mørkeste hjørner af nettet udklækkes frygtindgydende orme og 
+        forfærdelige hacks. Alligevel, mellem dæmoner og hunde, består en 
+        simpel trussel: SQL injection. Trods årtiers defensiv viden plager 
+        denne sårbarhed fortsat moderne applikationer og gør det muligt for 
+        angribere at manipulere databaseforespørgsler og kompromittere følsomme data.
+
+        Denne undersøgelse gennemfører en komparativ analyse af SQL injection 
+        forsvarsmekanismer på tværs af to dominerende webudviklingsøkosystemer: 
+        Python med Flask/SQLAlchemy og Node.js med Express. Gennem implementering 
+        af både sårbare og sikrede versioner af ækvivalente REST API'er demonstrerer 
+        vi almindelige angrebsvektorer, herunder autentificeringsomgåelse og 
+        union-baseret dataekstraktion, og evaluerer derefter effektiviteten af 
+        parameteriserede forespørgsler og ORM-frameworks i at forhindre disse angreb.
+
+        Vores resultater viser, at begge økosystemer succesfuldt blokerer SQL 
+        injection ved brug af korrekte defensive mønstre, men adskiller sig 
+        markant i, hvor let udviklere ved et uheld kan introducere sårbarheder. 
+        Pythons f-streng-formatering og JavaScripts template literals udgør 
+        lignende fristelser mod usikker kode, mens SQLAlchemy og sql.js 
+        parameteriserede forespørgsler giver lige robust beskyttelse. Undersøgelsen 
+        afsluttes med praktiske anbefalinger til udviklere og organisationer, 
+        der søger at balancere sikkerhed, udvikleroplevelse og ydeevne i deres 
+        teknologivalg.
+    \end{abstract}
+
+    \newpage
+    \tableofcontents
+    \newpage
+
+    \section{Introduktion}
+
+    Trods årtiers bevidsthed og modforanstaltninger forbliver SQL injection 
+    blandt de mest kritiske sårbarheder i webapplikationer og rangerer konsekvent 
+    i OWASPs Top 10 sikkerhedsrisici~\cite{OWASP_Top10}. Disse angreb udnytter 
+    ukorrekt håndtering af brugerinput i databaseforespørgsler, hvilket tillader 
+    ondsindede aktører at manipulere SQL-sætninger og kompromittere datafortrolighed, 
+    integritet og tilgængelighed~\cite{Halfond2006,OWASP_SQLi}.
+
+    Mens det grundlæggende defensive princip om at ``aldrig stole på brugerinput'' 
+    er veletableret, varierer den praktiske implementering dramatisk på tværs af 
+    programmeringsøkosystemer. Denne undersøgelse gennemfører en komparativ analyse 
+    af SQL injection forsvarsmekanismer i to udbredte webudviklingsplatforme: 
+    Python med Flask/SQLAlchemy og Node.js med Express. Vi undersøger ikke kun, 
+    hvor robust sikkerheden er i hver tilgang, men også udvikleroplevelsens 
+    implikationer, der påvirker adoption af sikre praksisser i den virkelige verden.
+
+    \subsection{Motivation}
+
+    Undersøgelsens aktualitet understreges af den fortsatte udbredelse og 
+    omkostning ved SQL injection-angreb. IBMs 2023 Cost of a Data Breach Report 
+    afslører, at det gennemsnitlige databrud koster organisationer \$4,45 millioner 
+    USD, mens brud i sundhedssektoren i gennemsnit koster \$10,93 millioner, 
+    det højeste af alle brancher~\cite{ResilientX_IBM2023}. Webapplikationsangreb 
+    forbliver en primær trusselsvektor på tværs af kritiske sektorer, herunder 
+    sundhed, finans og offentlig administration~\cite{ENISA_ThreatLandscape2023}, 
+    hvor disse angreb udgør en væsentlig del af 
+    brudhændelser~\cite{Verizon_DBIR2023}.
+
+    Alligevel fortsætter udviklere uvidende med at introducere SQL injection-sårbarheder 
+    gennem framework-misbrug, utilstrækkelig træning eller ved at prioritere 
+    hastighed over sikkerhed. Denne vedvarende tendens antyder en grundlæggende 
+    afkobling mellem sikre kodningsprincipper og praktisk implementering.
+
+    Denne komparative undersøgelse adresserer et kritisk hul: mens individuelle 
+    sprogfællesskaber dokumenterer deres egne defensive mønstre, er tværsproglige 
+    analyser, der afslører hvilke økosystemer der gør sikker kode til 
+    \textit{standarden} snarere end \textit{undtagelsen}, sjældne. Vi fokuserer 
+    specifikt på Python og Node.js, da de repræsenterer to af de mest populære 
+    valg til moderne webudvikling med tydeligt forskellige tilgange til 
+    typesystemer og databaseinteraktionsmønstre. For organisationer, der vælger 
+    teknologistak, påvirker forståelsen af, hvordan sprogdesign og 
+    framework-arkitektur influerer sikkerhedsresultater, direkte deres risikoeksponering.
+
+    \section{Problemformulering}
+
+    Mens eksisterende litteratur giver indsigt i mekanikken bag SQL injection 
+    og generelle defensive principper, er der begrænset komparativ analyse 
+    på tværs af forskellige programmeringssprog og frameworks. Denne undersøgelse 
+    adresserer dette hul ved at undersøge, hvilken sprog-framework-kombination 
+    der giver det mest robuste og samtidig udviklervenlige forsvar mod 
+    SQL injection-angreb.
+
+    \textbf{Forskningsspørgsmål:}
+    Hvordan adskiller forsvarsmekanismer mod SQL injection sig mellem Python 
+    og Node.js økosystemer, og hvilken sprog/framework-kombination giver den 
+    mest robuste beskyttelse, samtidig med at udviklerfriktionen minimeres?
+
+    \subsection{Underspørgsmål}
+    \begin{itemize}
+        \item Hvordan adskiller Python og Node.js implementeringer sig i deres sårbarhed over for SQL injection?
+        \item Hvor let er det for udviklere ved et uheld at introducere sårbarheder i hvert økosystem?
+        \item Hvilke forsvarsmekanismer tilbyder SQLAlchemy og sql.js, og hvor effektive er de?
+        \item Hvilken framework-tilgang er mest modstandsdygtig over for udviklermisbrug?
+    \end{itemize}
+
+    \section{Metode}
+
+    Denne undersøgelse anvender en komparativ implementeringsbaseret metode, 
+    hvor ækvivalente webapplikationer bygges i to forskellige sprog for at 
+    evaluere, hvordan hver håndterer simulerede SQL injection-angreb.
+
+    \subsection{Forskningstilgang}
+
+    Det teoretiske fundament trækker på etableret sikkerhedslitteratur, 
+    herunder OWASPs SQL Injection Prevention-retningslinjer~\cite{OWASP_SQLi} 
+    og akademisk forskning om angrebsklassificering~\cite{Halfond2006}. Vi 
+    supplerer dette med officiel framework-dokumentation for SQLAlchemy (Python) 
+    og sql.js (Node.js) for at forstå idiomatiske sikre mønstre i hvert økosystem. 
+    Implementeringen følger industristandarder for sikker udviklingspraksis, 
+    mens der bevidst skabes sårbarheder for at demonstrere almindelige faldgruber, 
+    som udviklere støder på.
+
+    \subsection{Implementeringsstrategi}
+
+    Vi implementerer to ækvivalente REST API'er med autentificering og 
+    dataforespørgselsendepunkter, der interagerer med en SQLite-database. 
+    For hvert økosystem udvikler vi to versioner: en sårbar baseline med 
+    usikker strengsammenkædning og en sikret implementering med parameteriserede 
+    forespørgsler. Python bruger Flask med SQLAlchemy ORM; Node.js bruger 
+    Express med sql.js. Denne tilgang muliggør direkte sammenligning af 
+    sikkerhedssårbarheder og beskyttelsesmekanismer.
+
+    \subsection{Evalueringskriterier}
+
+    \subsubsection{Sikkerhedsrobusthed}
+
+    Vi tester hver implementering mod almindelige SQL injection-vektorer, 
+    herunder autentificeringsomgåelse, union-baseret dataekstraktion og 
+    boolean-baseret blind injection, og vurderer både baseline-sårbarheder 
+    og defensiv effektivitet.
+
+    \subsubsection{Udvikleroplevelse}
+
+    Vi undersøger kodeomfang, mønsterklarhed og kognitiv belastning for 
+    sikre databaseinteraktioner, analyserer indlæringskurver, dokumentationskvalitet, 
+    og hvor naturligt sikre mønstre opstår fra idiomatisk kode.
+
+    \subsubsection{Ydeevneovervejelser}
+
+    Responstidstest viser, at defensive foranstaltninger introducerer 
+    ubetydelig overhead; begge implementeringer svarer på typiske forespørgsler 
+    på under 50ms.
+
+    \subsection{Testmiljø}
+
+    Begge implementeringer bruger SQLite-databaser. Python bruger version 3.14 
+    med Flask 3.0.0 og SQLAlchemy 2.0.45; Node.js bruger version 20 LTS med 
+    Express og sql.js. Test anvender manuel payload-injektion til 
+    autentificeringsomgåelse, union-baseret ekstraktion og boolean-baseret 
+    blind injection.
+
+    \section{Analyse og Resultater}
+
+    \subsection{Teoretisk Grundlag}
+
+    SQL injection er en klasse af sårbarhed, der opstår, når ikke-betroet input 
+    inkorporeres direkte i en databaseforespørgsel, hvilket tillader angribere 
+    at ændre den tilsigtede struktur eller semantik af forespørgslen. På et 
+    overordnet niveau fungerer injection, fordi SQL-parsing behandler de 
+    leverede data og forespørgselssyntaks på samme måde, medmindre dataene 
+    eksplicit separeres fra forespørgselslogikken. Almindelige manifestationer 
+    omfatter autentificeringsomgåelse (tautologiangreb), union-baseret 
+    dataekstraktion og blinde (boolean- eller tidsbaserede) teknikker, der 
+    bruges, når direkte output ikke er tilgængeligt~\cite{Halfond2006,OWASP_SQLi}.
+
+    Vi forsvarer mod SQL injection primært gennem parameteriserede forespørgsler, 
+    som separerer SQL-kode fra data ved at bruge pladsholdere til brugerinput. 
+    Parameteriserede forespørgsler opnår denne separation ved at sende 
+    forespørgselsstrukturen og dataværdierne som distinkte beskeder til 
+    databasemotoren. SQL-parseren kompilerer forespørgselsstrukturen først 
+    og etablerer, hvilke operationer der skal udføres, før brugerinput ankommer. 
+    Denne arkitektoniske separation gør det umuligt for ondsindet input at 
+    ændre forespørgslens adfærd, da specialtegn automatisk escapes af 
+    databasedriveren og behandles som bogstavelige data snarere end SQL-syntaks. 
+    Object-Relational Mapping (ORM) frameworks som SQLAlchemy abstraherer 
+    yderligere databaseinteraktioner og giver indbyggede mekanismer til sikkert 
+    at håndtere brugerinput, mens de håndhæver disse parameteriseringsmønstre.
+
+    \subsection{Python og SQLAlchemy}
+
+    \subsubsection{Sårbar Implementering}
+
+    Vores første eksempel bæres af Python-kodestykket fra vulnerable.py:
+    \begin{lstlisting}[showstringspaces=false, language=Python, caption=Sårbar SQL-forespørgsel med f-strenge]
+def get_user(username):
+    query = "SELECT * FROM users WHERE username = '{username}';"
+    result = db.execute(query)
+    return result.fetchall()
+    \end{lstlisting}
+
+    Det vi ser her er, at forespørgslen konstrueres ved hjælp af f-strenge, 
+    som direkte interpolerer \texttt{username}-variablen ind i SQL-sætningen. 
+    Dette åbner døren for injection, da en angriber kunne indtaste en ondsindet 
+    streng, der ændrer forespørgslens logik. For eksempel kunne en angriber indtaste:
+    \begin{lstlisting}[showstringspaces=false, language=Python, caption=Eksempel på ondsindet input]
+' OR '1'='1
+    \end{lstlisting}
+    Dette ville transformere forespørgslen til:
+    \begin{lstlisting}[language=SQL, caption=Transformeret SQL-forespørgsel]
+SELECT * FROM users WHERE username = '' OR '1'='1';
+    \end{lstlisting}
+    Denne forespørgsel ville returnere alle brugere og dermed effektivt omgå 
+    autentificering. Dette er kendt som et 
+    tautologi\footnote{Tautologi betyder blot noget, der logisk er sandt af nødvendighed. 
+    I dette tilfælde er '1'='1' altid sandt, så WHERE-klausulen er altid opfyldt.}-angreb.
+
+    I Python er f-strenge en bekvem måde at formatere strenge på, meget lig 
+    C\#'s strenginterpolation eller JavaScripts template literals. En udvikler 
+    kunne let som standard bruge f-strenge til SQL-forespørgsler uden at 
+    overveje sikkerhedsimplikationerne, især hvis de er ukendte med 
+    SQL injection-risici.
+
+    Under test var ovenstående angreb succesfuldt med at omgå autentificering 
+    og hente alle brugerregistreringer fra databasen i den sårbare implementering. 
+    I koderepository'et, se TEST\_RESULTS.md\footnote{Dette dokument er, 
+        på godt og ondt, hovedsageligt skrevet af Copilot. Utæmmet har den sporet min fremgang, 
+        eller mangel på samme.} 
+    for detaljerede logs af succesfulde angreb. Det skal bemærkes, at de faktiske 
+    payloads varierer, men indeholder ``-\--'' i slutningen for 
+    kommentarterminering\footnote{Jeg forventer, at den der læser dette kender udtrykket, 
+    men i dette tilfælde er kommentarterminering simpelthen at terminere resten af 
+    den originale forespørgsel efter vores ondsindede input.}.
+
+    \subsubsection{Sikret Implementering}
+
+    Den sikre implementering bruger SQLAlchemys parameteriserede forespørgsler 
+    til sikkert at håndtere brugerinput, som vist i følgende kodestykke fra secure\_app.py:
+    \begin{lstlisting}[showstringspaces=false, language=Python, caption=Sikret SQL-forespørgsel med SQLAlchemy]
+from sqlalchemy import text
+def get_user(username):
+    query = text("SELECT * FROM users WHERE username = :username;")
+    result = db.execute(query, {"username": username})
+    return result.fetchall()
+    \end{lstlisting}
+
+    Her bruger vi SQLAlchemys \texttt{text()}-funktion til at definere 
+    SQL-forespørgslen med en pladsholder \texttt{:username}. Den faktiske 
+    værdi for \texttt{username} leveres separat i \texttt{execute()}-metoden. 
+    Dette sikrer, at inputtet behandles som data, ikke som en del af 
+    SQL-kommandoen, hvilket effektivt neutraliserer ethvert injectionsforsøg.
+
+    Under test mislykkedes alle forsøg på SQL injection-angreb mod den sikrede 
+    implementering. Den parameteriserede forespørgsel håndterede korrekt 
+    ondsindede inputs og behandlede dem som data snarere end eksekverbar SQL-kode.
+
+    \subsubsection{Evaluering}
+
+    Python-implementeringen demonstrerede klar kontrast: sårbare versioner 
+    bukkede under for alle testede angreb, mens sikrede versioner blokerede 
+    alle forsøg. Resultater indikerer stærkt, at parameteriserede forespørgsler 
+    med SQLAlchemy giver robust beskyttelse. SQLAlchemys ORM-abstraktioner 
+    muliggør ligetil sikre implementeringer, selvom udviklere skal undgå 
+    f-strenge til forespørgsler. Ydeevne-overhead viste sig at være ubetydelig.
+
+    \subsection{Node.js og Express}
+
+    \subsubsection{Sårbar Implementering}
+
+    Den sårbare Node.js-implementering bruger template literals til at 
+    konstruere SQL-forespørgsler, som vist i følgende kodestykke fra vulnerable\_app.js:
+    \begin{lstlisting}[showstringspaces=false, language=JavaScript, caption=Sårbar SQL-forespørgsel med Template Literals]
+function getUser(username) {
+    const query = `SELECT * FROM users WHERE username = '${username}';`;
+    return db.exec(query);
+}
+    \end{lstlisting}
+
+    Som du kan se, er dette endnu et eksempel på direkte strenginterpolation, 
+    svarende til Pythons f-strenge. En angriber kunne udnytte dette ved at 
+    give et ondsindet input såsom:
+    \begin{lstlisting}[showstringspaces=false, language=JavaScript, caption=Eksempel på ondsindet input]
+' OR '1'='1
+    \end{lstlisting}
+    Dette ville transformere forespørgslen til:
+    \begin{lstlisting}[showstringspaces=false, language=SQL, caption=Transformeret SQL-forespørgsel]
+SELECT * FROM users WHERE username = '' OR '1'='1';
+    \end{lstlisting}
+    Som det foregående eksempel er dette et tautologiangreb, der ville returnere 
+    alle brugere og omgå autentificering.
+
+    Under test omgik dette angreb succesfuldt autentificering og hentede alle 
+    brugerregistreringer fra databasen i den sårbare implementering. Se igen 
+    TEST\_RESULTS.md i koderepository'et for detaljerede logs af succesfulde angreb.
+
+    \subsubsection{Sikret Implementering}
+
+    Den sikrede Node.js-implementering bruger sql.js's parameteriserede 
+    forespørgsler til sikkert at håndtere brugerinput, som vist i følgende 
+    kodestykke fra secure\_app.js:
+    \begin{lstlisting}[showstringspaces=false, language=JavaScript, caption=Sikret SQL-forespørgsel med sql.js Parameteriserede Forespørgsler]
+function getUser(username) {
+    const query = "SELECT * FROM users WHERE username = ?;";
+    const stmt = db.prepare(query);
+    stmt.bind([username]);
+    const result = stmt.step() ? stmt.getAsObject() : null;
+    stmt.free();
+    return result;
+}
+    \end{lstlisting}
+    Denne gang bruger vi en \texttt{?}-pladsholder i SQL-forespørgslen og 
+    binder den faktiske værdi for \texttt{username} ved hjælp af \texttt{bind()}-metoden. 
+    Dette sikrer, at inputtet behandles som data og forhindrer ethvert injectionsforsøg.
+
+    Under test mislykkedes alle forsøg på SQL injection-angreb mod den sikrede 
+    implementering. Den parameteriserede forespørgsel håndterede korrekt 
+    ondsindede inputs og behandlede dem som data snarere end eksekverbar SQL-kode.
+
+    \subsubsection{Evaluering}
+
+    Node.js-resultater afspejler Pythons: sårbare versioner mislykkedes mod 
+    alle angreb, sikrede versioner blokerede alle forsøg, hvilket bekræfter, 
+    at sql.js parameteriserede forespørgsler giver robust beskyttelse. API'en 
+    er noget mere omstændelig end SQLAlchemy, men stadig ligetil. Udviklere 
+    skal undgå template literals til forespørgsler. Ydeevne-overhead forbliver 
+    ubetydelig.
+
+    \subsection{Tværsproglig Sammenligning}
+
+    \subsubsection{Sikkerhedssammenligning}
+
+    Begge økosystemer demonstrerede robust beskyttelse ved brug af 
+    parameteriserede forespørgsler, mens sårbare implementeringer bukkede 
+    lige under for angreb. Sprog- og framework-valg bestemmer ikke i sig 
+    selv sikkerhed; sikre kodningspraksisser betyder mest. Sårbarheder opstod 
+    fra identiske fejl: strenginterpolation (f-strenge i Python, template 
+    literals i JavaScript). Begge dynamisk typede sprog frister udviklere 
+    mod bekvemme men usikre mønstre. Sikkerhed afhænger primært af 
+    udvikleruddannelse og organisatoriske standarder, ikke sprogfunktioner.
+
+    \subsubsection{Sammenligning af Udvikleroplevelse}
+
+    Begge frameworks tilbyder klare, veldokumenterede API'er. SQLAlchemys 
+    ORM-abstraktioner passer til objektorienterede udviklere; sql.js's 
+    lavniveau-tilgang kræver mere boilerplate, men passer til SQL-fortrolige 
+    udviklere. SQLAlchemy har en stejlere indlæringskurve, men opmuntrer til 
+    sikre mønstre. Begge økosystemer har modne fællesskaber og omfattende ressourcer.
+
+    \section{Konklusion}
+
+    Både Python/SQLAlchemy og Node.js/sql.js demonstrerer robust beskyttelse 
+    ved brug af parameteriserede forespørgsler, mens sårbare implementeringer 
+    bukker lige under for angreb. Sikre kodningspraksisser, ikke sprogvalg, 
+    bestemmer sikkerhedsresultater. Effektivitet afhænger af udvikleruddannelse 
+    og organisatoriske standarder.
+
+    \subsection{Sammenfatning af Resultater}
+
+    \begin{itemize}
+        \item Både Python med SQLAlchemy og Node.js med sql.js forhindrer effektivt SQL injection ved brug af parameteriserede forespørgsler.
+        \item Sårbarheder i begge økosystemer opstår primært fra lignende fejl, såsom brug af strenginterpolation til SQL-forespørgsler.
+        \item Udvikleroplevelsen varierer lidt, med SQLAlchemy der tilbyder flere ORM-abstraktioner og sql.js der er mere funktionel, men begge er veldokumenterede.
+        \item Indlæringskurven og letheden ved misbrug er sammenlignelig i begge økosystemer, hvilket understreger vigtigheden af udvikleruddannelse.
+    \end{itemize}
+
+    \subsection{Besvarelse af Forskningsspørgsmålet}
+
+    Begge sprog/framework-kombinationer giver lignende løsninger på SQL injection 
+    uden nogen klar vinder i absolutte termer. Organisationer bør vælge det 
+    økosystem, der bedst passer til deres teams ekspertise og projektkrav, 
+    da sikkerhed primært afhænger af udvikleruddannelse og organisatoriske 
+    kodningsstandarder snarere end iboende sprogfunktioner. Prioritering af 
+    sikre kodningspraksisser og løbende sikkerhedstræning forbliver essentiel 
+    uanset teknologivalg.
+
+    \subsection{Bedste Praksisser og Anbefalinger}
+
+    \begin{itemize}
+        \item Brug altid parameteriserede forespørgsler eller ORM-frameworks, der håndhæver sikre databaseinteraktioner.
+        \item Undgå at bruge strenginterpolation (f-strenge i Python, template literals i JavaScript) til konstruktion af SQL-forespørgsler.
+        \item Invester i udvikleruddannelse og træning i sikre kodningspraksisser, særligt vedrørende SQL injection-risici.
+        \item Etabler organisatoriske kodningsstandarder, der påbyder brug af sikre databaseinteraktionsmønstre.
+        \item Gennemgå og auditér regelmæssigt kode for potentielle SQL injection-sårbarheder i områder, der håndterer brugerinput.
+    \end{itemize}
+
+    \subsection{Begrænsninger og Fremtidigt Arbejde}
+
+    Denne undersøgelses omfang begrænsede analysen til Python og Node.js med 
+    SQLite. Fremtidigt arbejde kunne udvide til yderligere sprog og databasesystemer 
+    for at vurdere, om resultaterne generaliserer på tværs af økosystemer.
+
+    \subsection{Refleksion}
+
+    Denne undersøgelse forstærkede den kritiske vigtighed af sikre kodningspraksisser. 
+    Trods modenheden af webudviklingsframeworks forbliver SQL injection en 
+    udbredt trussel på grund af almindelige udviklerfejl. Oplevelsen fremhævede 
+    behovet for løbende uddannelse og årvågenhed i softwareudvikling, uanset 
+    den valgte teknologistak.
+
+    \newpage
+
+    \appendix
+
+    \section{Oversigt over Angrebstestresultater}
+
+    Følgende tabel opsummerer de SQL injection-angreb, der blev testet mod 
+    både sårbare og sikrede implementeringer på tværs af Python og Node.js økosystemer.
+
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{|l|c|c|c|c|}
+            \hline
+            \textbf{Angrebsvektor} & \multicolumn{2}{c|}{\textbf{Python/Flask}} & \multicolumn{2}{c|}{\textbf{Node.js/Express}} \\
+            \cline{2-5}
+            & Sårbar & Sikret & Sårbar & Sikret \\
+            \hline
+            Autentificeringsomgåelse & \textcolor{red}{FEJL} & \textcolor{green}{OK} & \textcolor{red}{FEJL} & \textcolor{green}{OK} \\
+            \hline
+        \end{tabular}
+        \caption{Angrebstestresultater. FEJL indikerer, at applikationen var sårbar over for angrebet.
+        OK indikerer, at angrebet blev succesfuldt blokeret.}
+        \label{tab:attack-results}
+    \end{table}
+
+    \textbf{Anvendt Test-payload:}
+    \begin{itemize}
+        \item \textbf{Autentificeringsomgåelse:} \texttt{admin' OR '1'='1'-{}-}
+    \end{itemize}
+
+    Autentificeringsomgåelsesangrebet udnytter en tautologibetingelse, der får 
+    WHERE-klausulen til altid at evaluere som sand. Alle sårbare implementeringer 
+    udviste 100\% modtagelighed for dette angreb. Alle sikrede implementeringer 
+    blokerede angrebet ved at behandle det ondsindede input som bogstavelige data.
+
+    \section{Repository-struktur}
+
+    Den komplette implementering er tilgængelig i det medfølgende koderepository 
+    med følgende struktur:
+
+    \begin{verbatim}
+exam-dfd-synopsis/
++-- main.tex                    # Dette synopsisdokument
++-- database/
+|   +-- schema.sql              # Databaseskemadefinition
+|   +-- seed.sql                # Testdatapopulering
++-- implementations/
+|   +-- python-flask/
+|   |   +-- vulnerable_app.py   # Sårbar Python-implementering
+|   |   +-- secure_app.py       # Sikret Python-implementering
+|   |   +-- test_attacks.py     # Angrebstestautomatisering
+|   |   +-- TEST_RESULTS.md     # Detaljerede testlogs
+|   |   +-- requirements.txt    # Python-afhængigheder
+|   +-- nodejs-express/
+|       +-- vulnerable_app.js   # Sårbar Node.js-implementering
+|       +-- secure_app.js       # Sikret Node.js-implementering
+|       +-- test_attacks.js     # Angrebstestautomatisering
+|       +-- TEST_RESULTS.md     # Detaljerede testlogs
+|       +-- package.json        # Node.js-afhængigheder
++-- out/
+    +-- references.bib          # Bibliografireferencer
+    \end{verbatim}
+
+    Hver implementeringsmappe indeholder identisk funktionalitet:
+    \begin{itemize}
+        \item REST API med \texttt{/api/login} og \texttt{/api/posts/search} endpoints
+        \item SQLite-database med Users og Posts tabeller
+        \item Automatiserede angrebstestscripts
+        \item Dokumenterede testresultater med angrebspayloads og svar
+    \end{itemize}
+
+    \newpage
+
+    \bibliographystyle{plain}
+    \bibliography{../out/references}
+
+\end{document}
+

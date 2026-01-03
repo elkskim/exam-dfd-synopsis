@@ -1,0 +1,370 @@
+﻿\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    pdfborder={0 0 0}
+]{hyperref}
+\usepackage{listings}
+\usepackage{fancyhdr}
+
+% Section formatting
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Adjust spacing
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsubsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Better paragraph spacing
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+% Page geometry
+\geometry{margin=1in}
+\setlength{\headheight}{14pt}
+
+% Code listing settings
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Database Security - SQL Injection}
+\lhead{DFD Synopsis}
+\rfoot{Page \thepage}
+
+% Title information
+\title{\textbf{SQL Injection Defense Mechanisms}\\
+\large A Comparative Study Across Programming Languages and Frameworks}
+\author{Mikkel Bak Markers}
+\date{\today}
+
+% Document
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+    In the darkest corners of the web, frightful worms and horrifying hacks
+    are concocted. Still, between the daemons and the dogs, a simple threat 
+    persists: SQL injection. Despite decades of defensive knowledge, this 
+    vulnerability continues to plague modern applications, enabling attackers 
+    to manipulate database queries and compromise sensitive data.
+    
+    This investigation conducts a comparative analysis of SQL injection 
+    defense mechanisms across two dominant web development ecosystems: 
+    Python with Flask/SQLAlchemy and Node.js with Express. Through 
+    implementation of both vulnerable and secured versions of equivalent 
+    REST APIs, we demonstrate common attack vectors including authentication 
+    bypass and union-based data exfiltration, then evaluate the effectiveness 
+    of parameterized queries and ORM frameworks in preventing these attacks.
+    
+    Our findings reveal that both ecosystems successfully block SQL injection 
+    when using proper defensive patterns, yet differ significantly in how easily 
+    developers might accidentally introduce vulnerabilities. Python's f-string 
+    formatting and JavaScript's template literals present similar temptations 
+    toward insecure code, while SQLAlchemy and sql.js parameterized queries 
+    provide equally robust protection. The investigation concludes with 
+    practical recommendations for developers and organizations seeking to 
+    balance security, developer experience, and performance in their 
+    technology stack choices.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Despite decades of awareness and countermeasures, SQL injection remains 
+among the most critical vulnerabilities in web applications, consistently 
+ranking in OWASP's Top 10 security risks~\cite{OWASP_Top10}. These attacks
+exploit improper handling of user input in database queries, allowing
+malicious actors to manipulate SQL statements and compromise data confidentiality,
+integrity, and availability~\cite{Halfond2006,OWASP_SQLi}.
+
+While the fundamental defensive principle of ``never trust user input'' is well 
+established, the practical implementation varies dramatically across 
+programming ecosystems. This investigation conducts a comparative analysis 
+of SQL injection defense mechanisms in two widely-adopted web development 
+platforms: Python with Flask/SQLAlchemy and Node.js with Express.
+We examine not only how robust the security is 
+in each approach, but also the developer experience implications 
+that influence real-world adoption of secure practices.
+
+\subsection{Motivation}
+
+The urgency of this investigation is underscored by the continued prevalence 
+and cost of SQL injection attacks. 
+IBM's 2023 Cost of a Data Breach Report reveals the average data breach 
+costs organizations \$4.45 million USD, with healthcare sector breaches 
+averaging \$10.93 million, the highest of all industries~\cite{ResilientX_IBM2023}. 
+Web application attacks remain a prime threat vector across critical sectors 
+including healthcare, finance, and public administration~\cite{ENISA_ThreatLandscape2023}, 
+with these attacks accounting for a substantial portion of breach 
+incidents~\cite{Verizon_DBIR2023}.
+
+Yet developers continue to unknowingly introduce SQL injection vulnerabilities through 
+framework misuse, inadequate training, or prioritizing speed over security. 
+This persistence suggests a fundamental disconnect 
+between secure coding principles and practical implementation.
+
+This comparative study addresses a critical gap: while individual language 
+communities document their own defensive patterns, cross-language analyses 
+revealing which ecosystems make secure code the \textit{default} rather than 
+the \textit{exception} remain scarce. We focus specifically on Python and 
+Node.js as they represent two of the most popular choices for modern web 
+development, with distinctly different approaches to type systems and 
+database interaction patterns.
+For organizations selecting technology 
+stacks, understanding how language design and framework architecture influence 
+security outcomes directly impacts their risk exposure.
+
+\section{Problem Statement}
+
+While existing literature provides insight into the mechanics of SQL injection 
+and general defensive principles, there is limited comparative analysis 
+across different programming languages and frameworks. 
+This investigation addresses that gap by examining which language-framework combination provides 
+the most robust and simultaneously developer-friendly defense against 
+SQL injection attacks.
+
+\textbf{Research Question:} 
+How do defensive mechanisms against 
+SQL injection differ between Python and Node.js ecosystems, 
+and which language/framework combination provides the most robust 
+protection while minimizing developer friction?
+
+\subsection{Sub-questions}
+\begin{itemize}
+    \item How do Python and Node.js implementations differ in their vulnerability to SQL injection?
+    \item How easy is it for developers to accidentally introduce vulnerabilities in each ecosystem?
+    \item What defensive mechanisms do SQLAlchemy and sql.js provide, and how effective are they?
+    \item Which framework approach is most resistant to developer misuse?
+\end{itemize}
+
+\section{Methodology}
+
+This investigation employs a comparative implementation-based methodology,
+building equivalent web applications in two different languages
+to evaluate how each handles simulated SQL injection attacks.
+
+\subsection{Research Approach}
+
+The theoretical foundation draws from established security literature,
+including OWASP's SQL Injection Prevention guidelines~\cite{OWASP_SQLi} and
+academic research on attack classification~\cite{Halfond2006}. We supplement
+this with official framework documentation for SQLAlchemy (Python) and 
+sql.js (Node.js) to understand idiomatic secure patterns in each ecosystem. 
+The implementation follows industry-standard secure development practices 
+while intentionally creating vulnerabilities to demonstrate common pitfalls 
+developers encounter.
+
+\subsection{Implementation Strategy}
+
+We implement two equivalent REST APIs, each providing authentication and
+data query endpoints that interact with a SQLite database. 
+For each ecosystem, we develop two versions: a vulnerable baseline using
+unsafe string concatenation or interpolation, and a secured implementation
+employing parameterized queries. 
+The Python implementation uses Flask with SQLAlchemy ORM,
+while Node.js uses Express with sql.js and parameterized queries. 
+This approach allows direct comparison of both the security 
+vulnerabilities introduced through common mistakes and the protective 
+mechanisms each framework provides, while also highlighting the differences
+between dynamically-typed Python and JavaScript environments.
+
+\subsection{Evaluation Criteria}
+
+\subsubsection{Security Robustness}
+
+Security evaluation tests each implementation against common SQL injection
+attack vectors including authentication bypass, union-based data extraction,
+and boolean-based blind injection.
+We assess both the vulnerability of baseline
+implementations and the effectiveness of defensive measures in secured versions.
+Additionally, we evaluate how easily developers can accidentally introduce
+vulnerabilities through framework misuse or misunderstanding.
+
+\subsubsection{Developer Experience}
+
+Developer experience assessment examines code verbosity, pattern clarity,
+and cognitive load required to implement secure database interactions. 
+We analyze the learning curve for each framework's security features, the quality
+and accessibility of documentation, and how naturally secure patterns emerge
+from idiomatic code. Special attention is given to how type systems influence security.
+
+\subsubsection{Performance Considerations}
+
+We observe response time characteristics for both implementations, noting
+that proper defensive measures introduce negligible overhead in both ecosystems.
+Both Python and Node.js implementations respond to typical queries in under
+50ms, demonstrating that security need not compromise performance.
+
+\subsection{Test Environment}
+
+Both implementations use SQLite databases for consistency and portability.
+The Python implementation uses version 3.14 with Flask 3.0.0 and SQLAlchemy 2.0.45,
+while Node.js uses version 20 LTS with Express and sql.js for in-memory 
+database operations. Security testing employs manual payload injection
+testing common attack vectors including authentication bypass, union-based
+data extraction, and boolean-based blind injection.
+
+\section{Analysis \& Results}
+
+\subsection{Theoretical Foundation}
+
+SQL injection occurs when an attacker manipulates database queries by injecting
+malicious SQL code through user input fields. The vulnerability arises from
+improper separation between code and data: when user input is directly
+concatenated into SQL queries, the database interpreter cannot distinguish
+between legitimate query structure and attacker-controlled commands~\cite{Halfond2006}.
+
+\subsubsection{Attack Mechanisms}
+
+The fundamental attack pattern exploits string concatenation in query construction.
+Consider a login query: \texttt{SELECT * FROM Users WHERE username='X' AND password='Y'}.
+If an attacker supplies \texttt{admin' OR '1'='1'--} as the username, the resulting
+query becomes: \texttt{SELECT * FROM Users WHERE username='admin' OR '1'='1'--' AND password='Y'}.
+The \texttt{--} comment delimiter neutralizes the password check, and \texttt{1=1} 
+evaluates as always true, bypassing authentication entirely.
+
+Union-based injection extends this principle, allowing attackers to append
+additional SELECT statements that extract arbitrary data from other tables.
+Boolean-based blind injection infers database structure through differential
+responses when injected conditions evaluate to true versus false.
+
+\subsubsection{Defensive Approaches}
+
+The OWASP Foundation identifies three primary defense categories~\cite{OWASP_SQLi}:
+
+\textbf{Parameterized Queries:} The gold standard defense separates SQL code
+structure from user data. Queries use placeholders (e.g., \texttt{?} or \texttt{:param})
+that bind user input as typed data values, not executable code. The database
+driver handles proper escaping automatically.
+
+\textbf{ORM Abstraction:} Object-Relational Mapping frameworks like SQLAlchemy
+abstract database interactions behind type-safe APIs. By generating queries
+programmatically rather than through string manipulation, ORMs make it
+significantly harder to accidentally introduce vulnerabilities.
+
+\textbf{Input Validation:} Whitelist validation and type checking provide
+defense-in-depth, but are insufficient as primary protection. Attackers
+continuously discover new encoding and obfuscation techniques that bypass
+validation rules.
+
+\subsubsection{Language Design Implications}
+
+Programming language features significantly influence vulnerability likelihood.
+Languages offering convenient string interpolation (Python f-strings, JavaScript
+template literals) tempt developers toward dangerous patterns. Conversely,
+strong type systems can detect some misuse at compile-time, though neither
+Python nor JavaScript provides such protection. Framework design choices—whether
+to make parameterized queries the default, how verbose secure patterns are,
+and quality of documentation—ultimately determine whether developers naturally
+write secure or vulnerable code.
+
+\subsection{Python and SQLAlchemy}
+
+\subsubsection{Vulnerable Implementation}
+% Code example showing string concatenation vulnerability
+% Why it's easy to make this mistake
+
+\subsubsection{Secured Implementation}
+% Parameterized queries with SQLAlchemy
+% Analysis of Python's dynamic typing implications
+
+\subsubsection{Evaluation}
+% Security robustness findings
+% Developer experience observations
+% Performance measurements
+
+\subsection{Node.js and Express}
+
+\subsubsection{Vulnerable Implementation}
+% Template literal injection vulnerability
+% The dangers of JavaScript's flexible string handling
+
+\subsubsection{Secured Implementation}
+% Parameterized queries with sql.js
+% Analysis of JavaScript's type system challenges
+
+\subsubsection{Evaluation}
+% Security robustness findings
+% Developer experience observations
+% Performance measurements
+
+\subsection{Cross-Language Comparison}
+
+\subsubsection{Security Comparison}
+% Which approach is hardest to misuse?
+% Runtime protections and framework defaults
+% Attack surface analysis
+
+\subsubsection{Developer Experience Comparison}
+% Code verbosity and clarity
+% Ease of learning and applying secure patterns
+% Documentation and ecosystem support
+
+\section{Conclusion}
+
+\subsection{Summary of Findings}
+% Key discoveries from the investigation
+% Which language/framework excels in which dimension
+% Trade-offs between security, usability, and performance
+
+\subsection{Answering the Research Question}
+% Direct response to the problem statement
+% Confirmation or rejection of hypotheses
+% Nuanced conclusions about context-dependent choices
+
+\subsection{Best Practices and Recommendations}
+% Universal principles that emerged
+% Language-specific recommendations
+% Organizational considerations for technology choice
+
+\subsection{Limitations and Future Work}
+% What we couldn't cover
+% Additional languages worth investigating
+% Emerging defensive technologies
+% The ongoing evolution of the threat landscape
+
+\subsection{Reflection}
+% Personal learnings from the investigation
+% Implications for future development work
+
+\newpage
+
+\bibliographystyle{plain}
+\bibliography{out/references}
+
+\end{document}
+

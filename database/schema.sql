@@ -1,32 +1,40 @@
-﻿-- Database schema for SQL Injection testing
--- SQL Server 2022
+﻿-- SQL Injection Test Database Schema
+-- Simple but realistic design for security testing
+-- Microsoft SQL Server 2022
 
-USE SQLInjectionTest;
-GO
+-- Drop tables if they exist (for clean re-runs)
+IF OBJECT_ID('dbo.Posts', 'U') IS NOT NULL DROP TABLE dbo.Posts;
+IF OBJECT_ID('dbo.Users', 'U') IS NOT NULL DROP TABLE dbo.Users;
 
--- Drop table if exists (for clean setup)
-IF OBJECT_ID('Users', 'U') IS NOT NULL
-    DROP TABLE Users;
-GO
-
--- Create Users table
+-- Users table - primary target for authentication bypass attacks
 CREATE TABLE Users (
-    Id INT PRIMARY KEY IDENTITY(1,1),
+    UserId INT PRIMARY KEY IDENTITY(1,1),
     Username NVARCHAR(50) NOT NULL UNIQUE,
-    Password NVARCHAR(255) NOT NULL,
-    Email NVARCHAR(100),
-    Role NVARCHAR(20) DEFAULT 'user',
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    LastLogin DATETIME NULL
+    Email NVARCHAR(100) NOT NULL,
+    PasswordHash NVARCHAR(255) NOT NULL,  -- In real app would be properly hashed
+    Role NVARCHAR(20) NOT NULL DEFAULT 'user',  -- 'user' or 'admin'
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    IsActive BIT NOT NULL DEFAULT 1
 );
-GO
 
--- Create index for common queries
+-- Posts table - target for data extraction and manipulation attacks
+CREATE TABLE Posts (
+    PostId INT PRIMARY KEY IDENTITY(1,1),
+    UserId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Content NVARCHAR(MAX) NOT NULL,
+    IsPublished BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_Posts_Users FOREIGN KEY (UserId) 
+        REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+-- Indexes for better query performance (and realistic schema)
 CREATE INDEX IX_Users_Username ON Users(Username);
-GO
+CREATE INDEX IX_Users_Email ON Users(Email);
+CREATE INDEX IX_Posts_UserId ON Posts(UserId);
+CREATE INDEX IX_Posts_CreatedAt ON Posts(CreatedAt DESC);
 
--- Verify table creation
-SELECT 'Table created successfully' AS Status;
-SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Users';
 GO
 

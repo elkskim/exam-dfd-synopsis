@@ -1,0 +1,37 @@
+\begin{thebibliography}{1}
+
+\bibitem{ENISA_ThreatLandscape2023}
+{European Union Agency for Cybersecurity}.
+\newblock Enisa threat landscape 2023.
+\newblock Technical report, ENISA, 2023.
+\newblock Accessed: 2024-12-17.
+
+\bibitem{Halfond2006}
+William G.~J. Halfond, Jeremy Viegas, and Alessandro Orso.
+\newblock A classification of sql injection attacks and countermeasures.
+\newblock In {\em Proceedings of the IEEE International Symposium on Secure
+  Software Engineering}, pages 13--15. IEEE, 2006.
+
+\bibitem{ResilientX_IBM2023}
+{IBM Security}.
+\newblock Cost of a data breach report 2023.
+\newblock Technical report, IBM Corporation, 2023.
+\newblock Accessed: 2024-12-17.
+
+\bibitem{OWASP_Top10}
+{OWASP Foundation}.
+\newblock Owasp top 10 2021, 2021.
+\newblock Accessed: 2024-12-17.
+
+\bibitem{OWASP_SQLi}
+{OWASP Foundation}.
+\newblock Sql injection prevention cheat sheet, 2024.
+\newblock Accessed: 2024-12-17.
+
+\bibitem{Verizon_DBIR2023}
+{Verizon Business}.
+\newblock 2023 data breach investigations report.
+\newblock Technical report, Verizon Communications, 2023.
+\newblock Accessed: 2024-12-17.
+
+\end{thebibliography}

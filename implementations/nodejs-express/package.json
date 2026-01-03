@@ -1,0 +1,19 @@
+﻿{
+  "name": "nodejs-express-sql-injection-demo",
+  "version": "1.0.0",
+  "description": "Intentional vulnerable and secure Node.js Express apps for SQL injection demo (SQLite via sql.js)",
+  "main": "vulnerable_app.js",
+  "scripts": {
+    "start:vulnerable": "node vulnerable_app.js",
+    "start:secure": "node secure_app.js",
+    "test:attacks": "node test_attacks.js",
+    "init-db": "node init_db.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sql.js": "^1.8.0"
+  }
+}
+
